@@ -1,0 +1,125 @@
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/tDebug"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:singleLine="true"
+        android:text="text"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/voltage_text"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/voltage_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Voltage"
+        android:textStyle="bold"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+        android:id="@+id/tWifiName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:text="wifi"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        app:layout_constraintLeft_toLeftOf="@+id/tDebug"
+        app:layout_constraintTop_toBottomOf="@+id/tDebug" />
+
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speedometer">
+
+    </FrameLayout>
+
+    <pl.pawelkleczkowski.customgauge.CustomGauge
+        android:id="@+id/speedometer"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="2dp"
+        android:padding="2dp"
+        app:gaugeDividerColor="@color/colorAccent"
+        app:gaugeDividerSize="1"
+        app:gaugeDividerStep="10"
+        app:gaugeEndValue="100"
+        app:gaugeStartAngle="120"
+        app:gaugeStartValue="0"
+        app:gaugeStrokeWidth="3dp"
+        app:gaugeSweepAngle="300"
+        app:layout_constraintRight_toLeftOf="@id/voltage_text"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/speedometer_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0\nkm/h"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@id/speedometer"
+        app:layout_constraintLeft_toLeftOf="@id/speedometer"
+        app:layout_constraintRight_toRightOf="@id/speedometer"
+        app:layout_constraintTop_toTopOf="@id/speedometer"
+        app:layout_constraintVertical_bias="0.8" />
+
+    <com.pierfrancescosoffritti.slidingdrawer.SlidingDrawer
+        android:id="@+id/sliding_drawer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <View
+            android:id="@id/non_slidable_view"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:clickable="true" />
+
+        <LinearLayout
+            android:id="@id/slidable_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <SeekBar
+                    android:id="@+id/led_seek_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="255" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_lightbulb_on_outline" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </com.pierfrancescosoffritti.slidingdrawer.SlidingDrawer>
+</android.support.constraint.ConstraintLayout>

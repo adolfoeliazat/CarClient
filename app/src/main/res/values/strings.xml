@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">CarClient</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="steering_types_entries">
+        <item>Seek bar</item>
+        <item>Accelerometer</item>
+    </string-array>
+
+    <string-array name="steering_types_values">
+        <item>seekbar</item>
+        <item>accelerometer</item>
+    </string-array>
+</resources>
