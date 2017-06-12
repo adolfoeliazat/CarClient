@@ -1,77 +1,72 @@
 package hakito.carclient;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.SeekBar;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.pierfrancescosoffritti.slidingdrawer.SlidingDrawer;
 
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import hakito.carclient.api.DataSender;
 import hakito.carclient.sensors.SensorProvider;
+import hakito.carclient.views.BigSeekBar;
 import pl.pawelkleczkowski.customgauge.CustomGauge;
 
 public class MainActivity extends AppCompatActivity implements SensorProvider, DataSender.SensorsCallback {
 
-    private static final String PREF_INTERVAL = "interval";
-    private static final String PREF_ADDRESS = "address";
-    private static final String PREF_LEFT = "left";
-    private static final String PREF_RIGHT = "right";
-    WifiManager wifiManager;
+    private static final int MAX_SEEK_BAR_VALUE = 100;
+
+    @BindView(R.id.tWifiName)
     TextView wifi;
-    View dragView;
+    @BindView(R.id.voltage_text)
     TextView voltageText;
     DataSender dataSender;
     SensorProvider sensorNormalizer;
-    TextView debugText;
-    SeekBar ledSeekBar;
-    BaseSteeringFragment baseSteeringFragment;
-    SlidingDrawer slidingDrawer;
-    CustomGauge speedometer;
-    TextView speedomterText;
-    double speed;
 
+    @BindView(R.id.tDebug)
+    TextView debugText;
+
+    @BindView(R.id.speedometer)
+    CustomGauge speedometer;
+
+    @BindView(R.id.speedometer_text)
+    TextView speedomterText;
+
+    @BindView(R.id.seekSteer)
+    BigSeekBar steeringSeekBar;
+
+    @BindView(R.id.seekThrottle)
+    BigSeekBar throttleSeekBar;
+
+    @BindView(R.id.brake_button)
+    Button brateButton;
+    private WifiManager wifiManager;
+    private PreferenceHelper preferenceHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String stterType = preferences.getString("steering_type", "seekbar");
-        BaseSteeringFragment fragment;
-        if (stterType.equals("seekbar")) {
-            fragment = new SeekBarsFragment();
-        } else {
-            fragment = new AccelerometerFragment();
-        }
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commit();
-        speedometer = (CustomGauge) findViewById(R.id.speedometer);
-        speedomterText = (TextView) findViewById(R.id.speedometer_text);
-        dragView = findViewById(R.id.non_slidable_view);
-        slidingDrawer = (SlidingDrawer) findViewById(R.id.sliding_drawer);
-        voltageText = (TextView) findViewById(R.id.voltage_text);
-        ledSeekBar = (SeekBar) findViewById(R.id.led_seek_bar);
-        debugText = (TextView) findViewById(R.id.tDebug);
-        wifi = (TextView) findViewById(R.id.tWifiName);
+        ButterKnife.bind(this);
+
+        steeringSeekBar.setHorizontal(true);
+        throttleSeekBar.setOnTouchListener(new SeekResetter(MAX_SEEK_BAR_VALUE / 2));
+        steeringSeekBar.setOnTouchListener(new SeekResetter(MAX_SEEK_BAR_VALUE / 2));
+
+        preferenceHelper = new PreferenceHelper(this);
+
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-        slidingDrawer.setDragView(dragView);
 
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -88,41 +83,8 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
 
 
         sensorNormalizer = new SensorNormalizer(this,
-                new Normalizer(Integer.valueOf(preferences.getString(PREF_LEFT, "80")),
-                        Integer.valueOf(preferences.getString(PREF_RIGHT, "100"))),
+                new Normalizer(preferenceHelper.getLeft(), preferenceHelper.getRight()),
                 new Normalizer(0, 255));
-
-        ledSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (dataSender != null) {
-                    dataSender.setLed(i);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        speed += 0.01;
-                        showSpeed(Math.abs(Math.sin(speed) * 10));
-                    }
-                });
-            }
-        }, 0, 50);
     }
 
     void showSpeed(double kmh) {
@@ -133,18 +95,12 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
     @Override
     protected void onResume() {
         super.onResume();
-        baseSteeringFragment = (BaseSteeringFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.fragment_container);
-
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        final int interval = Integer.valueOf(preferences.getString(PREF_INTERVAL, "100"));
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    dataSender = new DataSender(preferences.getString(PREF_ADDRESS, "192.168.4.1:81"), sensorNormalizer, MainActivity.this);
+                    dataSender = new DataSender(preferenceHelper.getAddress(), sensorNormalizer, MainActivity.this);
                 } catch (final IOException e) {
                     runOnUiThread(new Runnable() {
                         @Override
@@ -153,11 +109,11 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
                         }
                     });
                     return;
-                    //throw new RuntimeException(e);
                 }
                 dataSender.setDebugView(debugText);
-                dataSender.setInterval(interval);
+                dataSender.setInterval(preferenceHelper.getInterval());
                 dataSender.execute();
+                dataSender.setLed(preferenceHelper.getLight());
             }
         }).start();
     }
@@ -181,6 +137,9 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
                 Intent intent = new Intent(this, PrefsActivity.class);
                 startActivity(intent);
                 break;
+            case R.id.mAdditionalPanel:
+                new AdditionalPanelDialog().show(getSupportFragmentManager(), "TAG");
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -191,14 +150,23 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
         return true;
     }
 
-    @Override
-    public double getThrottle() {
-        return baseSteeringFragment.getThrottle();
+    private double normalize(int value) {
+        return value / MAX_SEEK_BAR_VALUE * 2 - 1;
     }
 
     @Override
     public double getSteering() {
-        return baseSteeringFragment.getSteer();
+        return normalize(steeringSeekBar.getProgress());
+    }
+
+    @Override
+    public double getThrottle() {
+        return normalize(throttleSeekBar.getProgress());
+    }
+
+    @Override
+    public boolean isBraking() {
+        return brateButton.isPressed();
     }
 
     @Override
@@ -239,6 +207,11 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
         @Override
         public double getSteering() {
             return steeringNormalizer.normalize(provider.getSteering());
+        }
+
+        @Override
+        public boolean isBraking() {
+            return provider.isBraking();
         }
     }
 }

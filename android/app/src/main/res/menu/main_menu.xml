@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:id="@+id/mSettings" android:title="Settings" ></item>
-    <item android:id="@+id/mReconnect" android:title="Reconnect"></item>
+    <item
+        android:id="@+id/mSettings"
+        android:title="Settings" />
+    <item
+        android:id="@+id/mReconnect"
+        android:title="Reconnect" />
+    <item
+        android:id="@+id/mAdditionalPanel"
+        android:title="Additional panel" />
 </menu>
