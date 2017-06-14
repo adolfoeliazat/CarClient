@@ -1,8 +1,8 @@
 #include <Servo.h>
 
-#define DIRRECTION_MASK 0b1000_0000
-#define STOP_MASK 0b0100_0000
-#define THROTTLE_MASK 0b0011_1111
+#define DIRRECTION_MASK 0b10000000
+#define STOP_MASK 0b01000000
+#define THROTTLE_MASK 0b00111111
 
 #define HALL 2
 #define BATTERY 0
@@ -24,6 +24,8 @@ long lastCommand;
 long lastHall;
 long hallInterval = 9999999;
 
+void hall();
+
 void setup() {
   Serial.begin(BAUD);
   Serial.setTimeout(50);
@@ -40,17 +42,17 @@ void setup() {
   pinMode(LED, OUTPUT);
 
   initWifi();
-  
+
   lastHall = millis();
 }
 
 void initWifi()
 {
-  sendData("AT");
+  sendData("AT\r\n");
   delay(300);
   if (!Serial.available())
   {
-    while (true){
+    while (true) {
       blinkLed(500, 500);
     }
   }
@@ -58,17 +60,19 @@ void initWifi()
   sendData("AT+RST\r\n");
   sendData("AT+CWMODE=2\r\n");
   sendData("AT+CIPMUX=1\r\n");
-  sendData("AT+CIPSERVER=1,81\r\n");  
+  sendData("AT+CIPSERVER=1,81\r\n");
+  //sendData("AT+CIPSTART=\"UDP\",\"192.168.4.100\",81\r\n");
+  //sendData("AT+CIPMODE=1\r\n"); 
 }
 
 void sendData(String command)
 {
   Serial.print(command);
- blinkLed(100, 0);
+  blinkLed(100, 0);
 }
 
-void blinkLed(long time, long postDelay){
-   analogWrite(LED, 100);
+void blinkLed(long time, long postDelay) {
+  analogWrite(LED, 100);
   delay(time);
   analogWrite(LED, 0);
   delay(postDelay);
@@ -82,7 +86,7 @@ void hall() {
 
 void applyThrottle(byte val)
 {
-  if(val & STOP_MASK)
+  if (val & STOP_MASK)
   {
     stopCar();
   }
@@ -98,8 +102,8 @@ void applyThrottle(byte val)
       digitalWrite(MOTOR_A, LOW);
       digitalWrite(MOTOR_B, HIGH);
     }
-    analogWrite(MOTOR_PWM, map(val & THROTTLE_MASK, 0, 64, 0, 255);
-  }    
+    analogWrite(MOTOR_PWM, map(val & THROTTLE_MASK, 0, 64, 0, 255));
+  }
 }
 
 void stopCar()
@@ -109,19 +113,22 @@ void stopCar()
   digitalWrite(MOTOR_B, HIGH);
 }
 
-void sendSensors() { 
+void sendSensors() {
   //make this call every x command
   if (counter % 32 == 0) {
     //TODO: check data length after changing stat data
     Serial.print("AT+CIPSEND=0,3\r\n");
-    while (true) {
-      if (Serial.find(">")) {
+    long t = millis();
+    while (millis() - t < 45) {
+      if (Serial.find(">"))  {
         break;
       }
     }
+
     Serial.print("$");
     Serial.write(map(analogRead(BATTERY), 0, 1023, 0, 255));
     Serial.write(min(hallInterval / 10, 255));
+
   }
   counter++;
 }

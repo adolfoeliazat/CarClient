@@ -42,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
     SlidingDrawer slidingDrawer;
     CustomGauge speedometer;
     TextView speedomterText;
-    double speed;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
         sensorNormalizer = new SensorNormalizer(this,
                 new Normalizer(Integer.valueOf(preferences.getString(PREF_LEFT, "80")),
                         Integer.valueOf(preferences.getString(PREF_RIGHT, "100"))),
-                new Normalizer(0, 255));
+                new Normalizer(0, 100));
 
         ledSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -111,18 +109,6 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
             }
         });
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        speed += 0.01;
-                        showSpeed(Math.abs(Math.sin(speed) * 10));
-                    }
-                });
-            }
-        }, 0, 50);
     }
 
     void showSpeed(double kmh) {
@@ -217,6 +203,17 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
                 }
             }
         });
+    }
+
+    @Override
+    public void onSpeedShanged(final int speed) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                showSpeed(Math.max(speed, 100));
+            }
+        });
+
     }
 
     static class SensorNormalizer implements SensorProvider {
