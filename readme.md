@@ -3,10 +3,11 @@ Each command starts from **$** and contains a few bytes
 ### Control command
 This command is being sent to car   
 **$mslh**   
-**m** main motor. It consists of 8 bits: dbxxxxxx.  
-	**d** dirrection. 1 - forward, 0 - backward
-	**s** brake. 1 - enabled, 0 - disabled
-	**xxxxxx** 6 bits indicating throttle level. 0 (000000) - min throttle, 63 - max (111111)
+**m** main motor. It consists of 8 bits: **dbxxxxxx**.  
+* **d** dirrection. 1 - forward, 0 - backward  
+* **s** brake. 1 - enabled, 0 - disabled  
+* **xxxxxx** 6 bits indicating throttle level. 0 (000000) - min throttle, 63 - max (111111)  
+
 **s** steering. 0-180 degrees  
 **l** light. 0-255  
 **h** hash. Special value to ensure data integrity. **h=(m+s+l)%256**  
