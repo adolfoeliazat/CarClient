@@ -1,5 +1,6 @@
 ## Commands
-Each command starts from **$** and contains a few bytes. All values are binary, so command $x where x = 96 will be looking as $a (ascii code of a is 96) but not $96.  
+Each command starts from **$** and contains a few bytes.  
+All values are binary, so command $x where x = 96 will look like $a (ascii code of a is 96) but not $96.  
 
 ### Control command
 This command is being sent to car   
