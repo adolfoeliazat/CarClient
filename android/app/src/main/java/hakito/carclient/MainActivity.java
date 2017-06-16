@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
             @Override
             public void run() {
                 try {
-                    dataSender = new DataSender(preferenceHelper.getAddress(), sensorNormalizer, MainActivity.this);
+                    dataSender = new DataSender(sensorNormalizer, MainActivity.this);
                 } catch (final IOException e) {
                     runOnUiThread(new Runnable() {
                         @Override
@@ -195,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
                 showSpeed(Math.max(speed, 100));
             }
         });
-
     }
 
     static class SensorNormalizer implements SensorProvider {

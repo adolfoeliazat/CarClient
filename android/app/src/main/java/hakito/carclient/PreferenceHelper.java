@@ -6,7 +6,6 @@ import android.preference.PreferenceManager;
 
 public class PreferenceHelper {
     private static final String PREF_INTERVAL = "interval";
-    private static final String PREF_ADDRESS = "address";
     private static final String PREF_LEFT = "left";
     private static final String PREF_RIGHT = "right";
     private static final String PREF_LIGHT = "light";
@@ -51,14 +50,6 @@ public class PreferenceHelper {
 
     public void setInterval(int interval) {
         putInt(PREF_INTERVAL, interval);
-    }
-
-    public String getAddress() {
-        return preferences.getString(PREF_ADDRESS, "192.168.4.1:81");
-    }
-
-    public void setAddress(String address) {
-        putString(PREF_ADDRESS, address);
     }
 
     public int getLight() {

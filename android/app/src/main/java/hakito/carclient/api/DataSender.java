@@ -7,6 +7,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -23,21 +24,9 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
     private InputStream inputStream;
     private SensorsCallback sensorsCallback;
 
-    public DataSender(String address, SensorProvider sensorProvider, SensorsCallback sensorsCallback) throws IOException {
+    public DataSender(SensorProvider sensorProvider, SensorsCallback sensorsCallback) throws IOException {
         this.sensorProvider = sensorProvider;
         this.sensorsCallback = sensorsCallback;
-        String[] tokens = address.split(":");
-        String host = tokens[0];
-        int port = Integer.valueOf(tokens[1]);
-
-        socket = new Socket(host, port);
-        socket.setTcpNoDelay(true);
-        socket.setTrafficClass(0x10);
-        socket.setPerformancePreferences(-1, 1, 1);
-        socket.setSoTimeout(10);
-
-        outputStream = socket.getOutputStream();
-        inputStream = socket.getInputStream();
     }
 
     public int getLed() {
@@ -80,7 +69,10 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
         if (rawThrottle > 0) {
             res |= (1 << 7);
         }
-        int abs = (int)((Math.abs(rawThrottle) / 50f) * 63);
+        if (sensorProvider.isBraking()) {
+            res |= (1 << 6);
+        }
+        int abs = (int) ((Math.abs(rawThrottle) / 50f) * 63);
         res |= abs;
 
         return res;
@@ -89,7 +81,6 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
     private byte[] getCommand() {
         byte[] res = new byte[5];
         res[0] = '$';
-        // TODO: 12.06.17 consider brake case via sensor.isBraking()
         res[1] = getThrottleCommand();
         res[2] = (byte) sensorProvider.getSteering();
         res[3] = (byte) led;
@@ -100,6 +91,17 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... params) {
         try {
+            ServerSocket serverSocket = new ServerSocket(2017);
+            socket = serverSocket.accept();
+
+            socket.setTcpNoDelay(true);
+            socket.setTrafficClass(0x10);
+            socket.setPerformancePreferences(-1, 1, 1);
+            socket.setSoTimeout(10);
+
+            outputStream = socket.getOutputStream();
+            inputStream = socket.getInputStream();
+
             while (true) {
                 if (socket == null) {
                     return null;
