@@ -4,17 +4,19 @@
 #define STOP_MASK 0b01000000
 #define THROTTLE_MASK 0b00111111
 
+//digital pins
 #define HALL 2
-#define BATTERY 0
-#define MOTOR_A 7
+#define LED 3
 #define MOTOR_B 4
 #define MOTOR_PWM 5
 #define STEER 6
-#define LED 3
+#define MOTOR_A 7
+
+//analog pins
+#define BATTERY 0
 
 #define BAUD  9600
 
-#define DEL 5
 #define COMMAND_LIFETIME 200
 
 Servo servo;
@@ -28,11 +30,11 @@ void hall();
 
 void setup() {
   Serial.begin(BAUD);
-  Serial.setTimeout(50);
+  Serial.setTimeout(30);
 
   servo.attach(STEER);
 
-  attachInterrupt(digitalPinToInterrupt(HALL), hall, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(HALL), hall, CHANGE);
 
   pinMode(HALL, INPUT);
   pinMode(STEER, OUTPUT);
@@ -48,34 +50,34 @@ void setup() {
 
 void initWifi()
 {
-  sendData("AT\r\n");
-  delay(300);
-  if (!Serial.available())
+  sendEsp("AT");
+  if (!Serial.find("OK"))
   {
     while (true) {
-      blinkLed(500, 500);
+      blinkLed(500);
+      delay(500);
     }
   }
-  //sendData("AT+CWSAP=\"esp_123\",\"1234test\",5,2\r\n");
-  sendData("AT+RST\r\n");
-  sendData("AT+CWMODE=2\r\n");
-  sendData("AT+CIPMUX=1\r\n");
-  sendData("AT+CIPSERVER=1,81\r\n");
-  //sendData("AT+CIPSTART=\"UDP\",\"192.168.4.100\",81\r\n");
-  //sendData("AT+CIPMODE=1\r\n"); 
+  sendEsp("AT+RST");
+  sednEsp("ATE0");
+  sendEsp("AT+CWMODE=1");
+  sendEsp("AT+CIPMUX=0");
+  sendEsp("AT+CWJAP=\"fly\",\"12345678\"");
+  sendEsp("AT+CIPMODE=1");
+  sendEsp("AT+CIPSTART=\"UDP\",\"192.168.43.12\"");
+  sendEsp("AT+CIPSEND");
 }
 
-void sendData(String command)
+void sendEsp(String command)
 {
-  Serial.print(command);
-  blinkLed(100, 0);
+  Serial.println(command);  
+  blinkLed(200);
 }
 
-void blinkLed(long time, long postDelay) {
-  analogWrite(LED, 100);
+void blinkLed(long time) {
+  analogWrite(LED, 75);
   delay(time);
-  analogWrite(LED, 0);
-  delay(postDelay);
+  analogWrite(LED, 0);  
 }
 
 void hall() {
@@ -102,7 +104,7 @@ void applyThrottle(byte val)
       digitalWrite(MOTOR_A, LOW);
       digitalWrite(MOTOR_B, HIGH);
     }
-    analogWrite(MOTOR_PWM, map(val & THROTTLE_MASK, 0, 64, 0, 255));
+    analogWrite(MOTOR_PWM, map(val & THROTTLE_MASK, 0, 63, 0, 255));
   }
 }
 
@@ -115,16 +117,7 @@ void stopCar()
 
 void sendSensors() {
   //make this call every x command
-  if (counter % 32 == 0) {
-    //TODO: check data length after changing stat data
-    Serial.print("AT+CIPSEND=0,3\r\n");
-    long t = millis();
-    while (millis() - t < 45) {
-      if (Serial.find(">"))  {
-        break;
-      }
-    }
-
+  if (counter % 8 == 0) {
     Serial.print("$");
     Serial.write(map(analogRead(BATTERY), 0, 1023, 0, 255));
     Serial.write(min(hallInterval / 10, 255));
@@ -134,17 +127,14 @@ void sendSensors() {
 }
 
 void loop() {
-  //stop car if no signal recieved long time
   if (millis() - lastCommand > COMMAND_LIFETIME)
   {
     stopCar();
   }
-
   if (Serial.available())
   {
     if (Serial.find("$"))
     {
-      delay(DEL);
       int throttle = Serial.read();
       int steer = Serial.read();
       int light = Serial.read();
@@ -156,8 +146,7 @@ void loop() {
         analogWrite(LED, light);
         lastCommand = millis();
         sendSensors();
-      }
-      //else data is corrupted
+      }//else data is corrupted
     }
   }
 }

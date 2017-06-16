@@ -1,9 +1,15 @@
 ## Commands
-Each command starts from **$** and contains a few bytes
+Each command starts from **$** and contains a few bytes.  
+All values are binary, so command $x where x = 96 will look like $a (ascii code of a is 96) but not $96.  
+
 ### Control command
 This command is being sent to car   
 **$mslh**   
-**m** main motor. 0 for full back, 255 full forward, 127 - neutral  
+**m** main motor. It consists of 8 bits: **dbxxxxxx**.  
+* **d** dirrection. 1 - forward, 0 - backward  
+* **s** brake. 1 - enabled, 0 - disabled  
+* **xxxxxx** 6 bits indicating throttle level. 0 (000000) - min throttle, 63 - max (111111)  
+
 **s** steering. 0-180 degrees  
 **l** light. 0-255  
 **h** hash. Special value to ensure data integrity. **h=(m+s+l)%256**  
