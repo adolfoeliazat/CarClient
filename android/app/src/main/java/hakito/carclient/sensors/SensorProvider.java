@@ -8,4 +8,6 @@ public interface SensorProvider {
 
     @FloatRange(from = -1, to = 1)
     double getSteering();
+
+    boolean isBraking();
 }

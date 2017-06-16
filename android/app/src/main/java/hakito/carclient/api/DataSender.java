@@ -89,6 +89,7 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
     private byte[] getCommand() {
         byte[] res = new byte[5];
         res[0] = '$';
+        // TODO: 12.06.17 consider brake case via sensor.isBraking()
         res[1] = getThrottleCommand();
         res[2] = (byte) sensorProvider.getSteering();
         res[3] = (byte) led;
