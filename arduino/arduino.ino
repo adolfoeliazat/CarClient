@@ -35,8 +35,6 @@ void setup() {
 	pinMode(LED, OUTPUT);
 
 	initWifi();
-
-	lastHall = millis();
 }
 
 void initWifi() {
