@@ -64,7 +64,7 @@ void initWifi()
   sendEsp("AT+CIPMUX=0");
   sendEsp("AT+CWJAP=\"fly\",\"12345678\"");
   sendEsp("AT+CIPMODE=1");
-  sendEsp("AT+CIPSTART=\"UDP\",\"192.168.43.12\"");
+  sendEsp("AT+CIPSTART=\"TCP\",\"192.168.43.12\",2017");
   sendEsp("AT+CIPSEND");
 }
 
