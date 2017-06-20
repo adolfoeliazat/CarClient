@@ -1,10 +1,9 @@
 #include <Servo.h>
 
-#define DIRRECTION_MASK 0b1000_0000
-#define STOP_MASK 0b0100_0000
-#define THROTTLE_MASK 0b0011_1111
+#define DIRRECTION_MASK 0b10000000
+#define STOP_MASK 0b01000000
+#define THROTTLE_MASK 0b00111111
 
-#define HALL 2
 #define BATTERY 0
 #define MOTOR_A 7
 #define MOTOR_B 4
@@ -12,7 +11,7 @@
 #define STEER 6
 #define LED 3
 
-#define BAUD  9600
+#define BAUD  57600
 
 #define DEL 5
 #define COMMAND_LIFETIME 200
@@ -21,18 +20,12 @@ Servo servo;
 byte counter;
 long lastCommand;
 
-long lastHall;
-long hallInterval = 9999999;
-
 void setup() {
   Serial.begin(BAUD);
   Serial.setTimeout(50);
 
   servo.attach(STEER);
 
-  attachInterrupt(digitalPinToInterrupt(HALL), hall, CHANGE);
-
-  pinMode(HALL, INPUT);
   pinMode(STEER, OUTPUT);
   pinMode(MOTOR_A, OUTPUT);
   pinMode(MOTOR_B, OUTPUT);
@@ -41,7 +34,6 @@ void setup() {
 
   initWifi();
   
-  lastHall = millis();
 }
 
 void initWifi()
@@ -74,11 +66,6 @@ void blinkLed(long time, long postDelay){
   delay(postDelay);
 }
 
-void hall() {
-  long t = millis();
-  hallInterval = t - lastHall;
-  lastHall = t;
-}
 
 void applyThrottle(byte val)
 {
@@ -98,7 +85,7 @@ void applyThrottle(byte val)
       digitalWrite(MOTOR_A, LOW);
       digitalWrite(MOTOR_B, HIGH);
     }
-    analogWrite(MOTOR_PWM, map(val & THROTTLE_MASK, 0, 64, 0, 255);
+    analogWrite(MOTOR_PWM, map(val & THROTTLE_MASK, 0, 64, 0, 255));
   }    
 }
 
@@ -111,7 +98,7 @@ void stopCar()
 
 void sendSensors() { 
   //make this call every x command
-  if (counter % 32 == 0) {
+  if (counter % 200 == 0) {
     //TODO: check data length after changing stat data
     Serial.print("AT+CIPSEND=0,3\r\n");
     while (true) {
@@ -121,7 +108,7 @@ void sendSensors() {
     }
     Serial.print("$");
     Serial.write(map(analogRead(BATTERY), 0, 1023, 0, 255));
-    Serial.write(min(hallInterval / 10, 255));
+    Serial.write(0);
   }
   counter++;
 }
