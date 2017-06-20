@@ -112,7 +112,6 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
                 outputStream.write(command);
                 outputStream.flush();
 
-
                 if (inputStream.available() >= 3 && inputStream.read() == '$') {
                     sensorsCallback.onVoltageChanged(inputStream.read());
                     sensorsCallback.onSpeedShanged(inputStream.read());
