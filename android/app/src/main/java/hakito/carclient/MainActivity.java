@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.annotation.FloatRange;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -82,13 +83,14 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
         }, 300, 5000);
 
 
+        boolean throttleLimited = preferenceHelper.isThrottleLimited();
         sensorNormalizer = new SensorNormalizer(this,
                 new Normalizer(preferenceHelper.getLeft(), preferenceHelper.getRight()),
-                new Normalizer(0, 255));
+                new Normalizer(throttleLimited ? 25 : 0, throttleLimited ? 75 : 100));
     }
 
     void showSpeed(double kmh) {
-        speedometer.setValue((int) (kmh * 10));
+        speedometer.setValue((int) (kmh / 10));
         speedomterText.setText(String.format("%.1f\nkm/h", kmh));
     }
 
@@ -150,8 +152,9 @@ public class MainActivity extends AppCompatActivity implements SensorProvider, D
         return true;
     }
 
+    @FloatRange(from = 0, to = 1)
     private double normalize(int value) {
-        return value / MAX_SEEK_BAR_VALUE * 2 - 1;
+        return value / MAX_SEEK_BAR_VALUE;
     }
 
     @Override

@@ -9,6 +9,7 @@ public class PreferenceHelper {
     private static final String PREF_LEFT = "left";
     private static final String PREF_RIGHT = "right";
     private static final String PREF_LIGHT = "light";
+    private static final String PREF_THROTTLE_LIMIT = "throttle_limit";
 
     private SharedPreferences preferences;
 
@@ -58,5 +59,9 @@ public class PreferenceHelper {
 
     public void setLight(int light) {
         putInt(PREF_LIGHT, light);
+    }
+
+    public boolean isThrottleLimited() {
+        return preferences.getBoolean(PREF_THROTTLE_LIMIT, true);
     }
 }
