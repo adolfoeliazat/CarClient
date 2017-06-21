@@ -11,9 +11,8 @@ public class Normalizer {
     }
 
     public double normalize(double val) {
-        if (val < -1) val = -1;
+        if (val < 0) val = 0;
         if (val > 1) val = 1;
-        double v = val / 2 + 0.5;
-        return (int) (min + v * (max - min));
+        return (int) (min + val * (max - min));
     }
 }

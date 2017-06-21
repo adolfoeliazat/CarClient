@@ -6,10 +6,10 @@ import android.preference.PreferenceManager;
 
 public class PreferenceHelper {
     private static final String PREF_INTERVAL = "interval";
-    private static final String PREF_ADDRESS = "address";
     private static final String PREF_LEFT = "left";
     private static final String PREF_RIGHT = "right";
     private static final String PREF_LIGHT = "light";
+    private static final String PREF_THROTTLE_LIMIT = "throttle_limit";
 
     private SharedPreferences preferences;
 
@@ -29,37 +29,27 @@ public class PreferenceHelper {
                 .apply();
     }
 
-    public int getLeft() {
-        return preferences.getInt(PREF_LEFT, 80);
+    private int  getAsInt(String key, int defaultVal){
+        return Integer.valueOf(preferences.getString(key, String.valueOf(defaultVal)));
     }
 
-    public void setLeft(int left) {
-        putInt(PREF_LEFT, left);
+    public int getLeft() {
+        return getAsInt(PREF_LEFT, 80);
     }
+
+
 
     public int getRight() {
-        return preferences.getInt(PREF_RIGHT, 100);
+        return getAsInt(PREF_RIGHT, 100);
     }
 
-    public void setRight(int right) {
-        putInt(PREF_RIGHT, right);
-    }
+
 
     public int getInterval() {
-        return preferences.getInt(PREF_INTERVAL, 100);
+        return getAsInt(PREF_INTERVAL, 100);
     }
 
-    public void setInterval(int interval) {
-        putInt(PREF_INTERVAL, interval);
-    }
 
-    public String getAddress() {
-        return preferences.getString(PREF_ADDRESS, "192.168.4.1:81");
-    }
-
-    public void setAddress(String address) {
-        putString(PREF_ADDRESS, address);
-    }
 
     public int getLight() {
         return preferences.getInt(PREF_LIGHT, 0);
@@ -67,5 +57,9 @@ public class PreferenceHelper {
 
     public void setLight(int light) {
         putInt(PREF_LIGHT, light);
+    }
+
+    public boolean isThrottleLimited() {
+        return preferences.getBoolean(PREF_THROTTLE_LIMIT, true);
     }
 }

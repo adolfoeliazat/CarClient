@@ -7,6 +7,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -23,14 +24,10 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
     private InputStream inputStream;
     private SensorsCallback sensorsCallback;
 
-    public DataSender(String address, SensorProvider sensorProvider, SensorsCallback sensorsCallback) throws IOException {
+    public DataSender(SensorProvider sensorProvider, SensorsCallback sensorsCallback) throws IOException {
         this.sensorProvider = sensorProvider;
         this.sensorsCallback = sensorsCallback;
-        String[] tokens = address.split(":");
-        String host = tokens[0];
-        int port = Integer.valueOf(tokens[1]);
-
-        socket = new Socket(host, port);
+        socket = new Socket("192.168.4.1", 81);
         socket.setTcpNoDelay(true);
         socket.setTrafficClass(0x10);
         socket.setPerformancePreferences(-1, 1, 1);
@@ -49,7 +46,9 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
     }
 
     public void stop() throws IOException {
-        socket.close();
+        if (socket != null) {
+            socket.close();
+        }
         socket = null;
     }
 
@@ -72,11 +71,25 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
         this.debugView = debugView;
     }
 
+    private byte getThrottleCommand() {
+        int rawThrottle = (int) sensorProvider.getThrottle() - 50;
+        byte res = 0;
+        if (rawThrottle > 0) {
+            res |= (1 << 7);
+        }
+        if (sensorProvider.isBraking()) {
+            res |= (1 << 6);
+        }
+        int abs = (int) ((Math.abs(rawThrottle) / 50f) * 63);
+        res |= abs;
+
+        return res;
+    }
+
     private byte[] getCommand() {
         byte[] res = new byte[5];
         res[0] = '$';
-        // TODO: 12.06.17 consider brake case via sensor.isBraking()
-        res[1] = (byte) sensorProvider.getThrottle();
+        res[1] = getThrottleCommand();
         res[2] = (byte) sensorProvider.getSteering();
         res[3] = (byte) led;
         res[4] = (byte) (res[1] + res[2] + res[3]);
@@ -97,8 +110,9 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
                 outputStream.flush();
 
 
-                if (inputStream.available() > 0 && inputStream.read() == '$') {
+                if (inputStream.available() >= 3 && inputStream.read() == '$') {
                     sensorsCallback.onVoltageChanged(inputStream.read());
+                    sensorsCallback.onSpeedShanged(inputStream.read());
                 }
 
                 debug(strCommand);
@@ -117,5 +131,7 @@ public class DataSender extends AsyncTask<Void, Void, Void> {
 
     public interface SensorsCallback {
         void onVoltageChanged(int voltage);
+
+        void onSpeedShanged(int speed);
     }
 }
